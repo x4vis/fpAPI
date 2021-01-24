@@ -54,6 +54,8 @@ namespace fpAPI
             {
                 endpoints.MapControllers();
             });
+
+            Access.EFCtx.Init();
         }
     }
 }
