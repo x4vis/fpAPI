@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using fpAPI.Access;
+using fpAPI.DTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Access

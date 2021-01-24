@@ -16,5 +16,9 @@
 
   <ItemGroup>
     <Folder Include="Controllers\" />
+    <Folder Include="Access\Own\" />
+    <Folder Include="DTO\" />
+    <Folder Include="Helpers\" />
+    <Folder Include="Logic\" />
   </ItemGroup>
 </Project>
