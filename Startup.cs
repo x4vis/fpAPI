@@ -44,6 +44,12 @@ namespace fpAPI
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "fpAPI v1"));
             }
 
+#if (DEBUG)
+            app.UseCors(builder => builder.WithExposedHeaders("*").AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+#else
+            app.UseCors(builder => builder.WithExposedHeaders("*"));
+#endif
+
             app.UseHttpsRedirection();
 
             app.UseRouting();
