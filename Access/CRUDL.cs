@@ -41,8 +41,7 @@ namespace api.Access
         {
             t.Add(obj);
 
-            int save = 0;
-
+            int save;
             try
             {
                 save = await EFCtx.Inv.SaveChangesAsync();

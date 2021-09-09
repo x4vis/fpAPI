@@ -1,104 +1,204 @@
-DROP DATABASE IF EXISTS inv_cont;
-CREATE DATABASE IF NOT EXISTS inv_cont DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+DROP DATABASE IF EXISTS Business;
+CREATE DATABASE IF NOT EXISTS Business DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-USE inv_cont;
-
--- HUMAN RESOURCES
+USE Business;
 
 CREATE TABLE IF NOT EXISTS Role (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(64) NOT NULL,
-  mask TINYINT UNSIGNED NOT NULL
+  RoleId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  Name VARCHAR(64) NOT NULL,
+  Mask TINYINT UNSIGNED NOT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Office (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(128) NOT NULL,
-  creation_date DATETIME DEFAULT NOW()
+  OfficeId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  Name VARCHAR(128) NOT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS User (
- id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
- role_fk INT UNSIGNED NOT NULL,
- office_fk INT UNSIGNED NOT NULL,
- first_names VARCHAR(255) NOT NULL,
- last_names VARCHAR(255) NOT NULL,
- email VARCHAR(128) NOT NULL UNIQUE,
- phone_number VARCHAR(32) DEFAULT NULL,
- street VARCHAR(255) DEFAULT NULL,
- ext_num VARCHAR(32) DEFAULT NULL,
- int_num VARCHAR(32) DEFAULT NULL,
- neighborhood VARCHAR(64) DEFAULT NULL,
- cp MEDIUMINT UNSIGNED DEFAULT NULL,
- psw TINYBLOB NOT NULL,
- creation_date DATETIME DEFAULT NOW(),
+  UserId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  RoleId INT UNSIGNED NOT NULL,
+  OfficeId INT UNSIGNED NOT NULL,
+  FirstName VARCHAR(128) NOT NULL,
+  MiddleName VARCHAR(128) NOT NULL,
+  SurNames VARCHAR(255) NOT NULL,
+  Email VARCHAR(128) NOT NULL UNIQUE,
+  PhoneNumber VARCHAR(32) DEFAULT NULL,
+  Street VARCHAR(255) DEFAULT NULL,
+  ExteriorNumber VARCHAR(32) DEFAULT NULL,
+  InteriorNumber VARCHAR(32) DEFAULT NULL,
+  Neighborhood VARCHAR(64) DEFAULT NULL,
+  PostalCode MEDIUMINT UNSIGNED DEFAULT NULL,
+  Password TINYBLOB NOT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL
 
- CONSTRAINT user_rol_fk FOREIGN KEY (role_fk) REFERENCES Role(id),
- CONSTRAINT user_office_fk FOREIGN KEY (office_fk) REFERENCES Office(id)
+  CONSTRAINT UserRolFk
+  FOREIGN KEY (RoleId)
+  REFERENCES Role(RoleId),
+
+  CONSTRAINT UserOfficeFk
+  FOREIGN KEY (OfficeId)
+  REFERENCES Office(OfficeId)
 );
 
 
 -- PRODUCTS
 
 CREATE TABLE IF NOT EXISTS Category (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(255) DEFAULT NULL
-)COMMENT='Product Categories';
+  CategoryId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  Name VARCHAR(255) DEFAULT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL
+);
 
-CREATE TABLE IF NOT EXISTS Subcategory (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  category_fk INT UNSIGNED NOT NULL,
-  name VARCHAR(255) DEFAULT NULL,
-    
-  CONSTRAINT subcategory_category_fk FOREIGN KEY (category_fk) REFERENCES Category(id)
-)COMMENT='Product Subcategories';
+CREATE TABLE IF NOT EXISTS SubCategory (
+  SubCategoryId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  Name VARCHAR(255) DEFAULT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL
+);
 
-CREATE TABLE IF NOT EXISTS Measurement_Unit (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  mu_key VARCHAR(16) DEFAULT NULL,
-  description VARCHAR(64) DEFAULT NULL
-)COMMENT='Product Measurement Units';
+CREATE TABLE IF NOT EXISTS CategorySubCategory (
+  CategoryId INT UNSIGNED NOT NULL,
+  SubCategoryId INT UNSIGNED NOT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL
+  PRIMARY KEY (CategoryId, SubCategoryId),
+
+  CONSTRAINT CategorySubCategoryCategoryFk
+  FOREIGN KEY (CategoryId) 
+  REFERENCES Category(CategoryId),
+
+  CONSTRAINT CategorySubCategorySubCategoryFk
+  FOREIGN KEY (SubCategoryId)
+  REFERENCES SubCategory(SubCategoryId)
+);
+
+CREATE TABLE IF NOT EXISTS MeasurementUnit (
+  MeasurementUnitId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  key VARCHAR(16) DEFAULT NULL,
+  Name VARCHAR(64) DEFAULT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS Discount (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  qty DECIMAL(10,2) NOT NULL
-)COMMENT='Product Discounts';
+  DiscountId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  Quantity DECIMAL(10,2) NOT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS Product (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  subcategory_fk INT UNSIGNED DEFAULT NULL,
-  mesurement_unit_fk INT UNSIGNED DEFAULT NULL,
-  discount_fk INT UNSIGNED NOT NULL,
-  name VARCHAR(128) DEFAULT NULL,
-  description VARCHAR(255) DEFAULT NULL,
-  sku VARCHAR(128) DEFAULT NULL,
-  weight DECIMAL(10, 2) DEFAULT NULL,
+  ProductId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  MeasurementUnitId INT UNSIGNED NOT NULL,
+  Name VARCHAR(128) DEFAULT NULL,
+  Description VARCHAR(255) DEFAULT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL,
 
-  CONSTRAINT product_subcategory_fk FOREIGN KEY (subcategory_fk) REFERENCES Subcategory(id),
-  CONSTRAINT product_measurementunit_fk FOREIGN KEY (mesurement_unit_fk) REFERENCES Measurement_Unit(id),
-  CONSTRAINT product_discount_fk FOREIGN KEY (discount_fk) REFERENCES Discount(id)
+  CONSTRAINT ProductMeasurementUnitFk
+  FOREIGN KEY (MeasurementUnitId)
+  REFERENCES MeasurementUnit(MeasurementUnitId),
+
+  CONSTRAINT ProductDiscountFk 
+  FOREIGN KEY (DiscountId)
+  REFERENCES Discount(DiscountId)
 );
 
-CREATE TABLE IF NOT EXISTS Office_Product (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  office_fk INT UNSIGNED NOT NULL,
-  product_fk INT UNSIGNED NOT NULL,
-  stock DECIMAL(10,2) NOT NULL,
-  sell_price DECIMAL(10,2) NOT NULL,
-  utility DECIMAL(10,2) NOT NULL,
-  
-  CONSTRAINT officeproduct_office_fk FOREIGN KEY (office_fk) REFERENCES Office(id),
-  CONSTRAINT officeproduct_product_fk FOREIGN KEY (product_fk) REFERENCES Product(id)
+CREATE TABLE ImageUrl (
+  ImageUrlId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  ProductId INT UNSIGNED NOT NULL,
+  Url VARCHAR(500) DEFAULT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL,
+
+  CONSTRAINT ImageUrlProductFk
+  FOREIGN KEY (ProductId)
+  REFERENCES Product(ProductId)
 );
 
-CREATE TABLE IF NOT EXISTS Office_Product_History (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  office_product_fk INT UNSIGNED NOT NULL,
-  sell_price DECIMAL(10,2) NOT NULL,
-  utility DECIMAL(10,2) NOT NULL,
-  price_update DATETIME DEFAULT NOW(),
+CREATE TABLE IF NOT EXISTS ProductCategory (
+  ProductId INT UNSIGNED NOT NULL,
+  CategoryId INT UNSIGNED NOT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL,
+  PRIMARY KEY (ProductId, CategoryId),
+
+  CONSTRAINT ProductCategoryProductFk
+  FOREIGN KEY (ProductId)
+  REFERENCES Product(ProductId),
+
+  CONSTRAINT ProductCategoryCategoryFk
+  FOREIGN KEY (CategoryId)
+  REFERENCES Category(CategoryId)
+);
+
+CREATE TABLE IF NOT EXISTS OfficeProduct (
+  OfficeId INT UNSIGNED NOT NULL,
+  ProductId INT UNSIGNED NOT NULL,
+  DiscountId INT UNSIGNED DEFAULT NULL,
+  Stock DECIMAL(10,2) NOT NULL,
+  SellPrice DECIMAL(10,2) NOT NULL,
+  Utility DECIMAL(10,2) NOT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL,
+  PRIMARY KEY (OfficeId, ProductId),
   
-  CONSTRAINT officeproducthistory_officeproduct_fk FOREIGN KEY (office_product_fk) REFERENCES Office_Product(id)
+  CONSTRAINT OficeProductOfficeFk
+  FOREIGN KEY (OfficeId)
+  REFERENCES Office(OfficeId),
+
+  CONSTRAINT OfficeProductProductFk
+  FOREIGN KEY (ProductId)
+  REFERENCES Product(ProductId),
+
+  CONSTRAINT OfficeProductDiscountFk
+  FOREIGN KEY (DiscountId)
+  REFERENCES Discount(DiscountId)
+);
+
+CREATE TABLE IF NOT EXISTS OfficeProductHistory (
+  OfficeProductHistoryId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  OfficeProductId INT UNSIGNED NOT NULL,
+  SellPrice DECIMAL(10,2) NOT NULL,
+  Utility DECIMAL(10,2) NOT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL,
+  
+  CONSTRAINT OfficeProductHistoryOfficeProductFk
+  FOREIGN KEY (OfficeProductId)
+  REFERENCES OfficeProduct(OfficeProductId)
 );
 
 -- CLIENTS
@@ -164,9 +264,9 @@ CREATE TABLE IF NOT EXISTS Sale_Detail (
   CONSTRAINT saledetail_product_fk FOREIGN KEY (product_fk) REFERENCES Product(id)
 )COMMENT='A row per sold product';
 
--- PROVIDERS
+-- VENDORS
 
-CREATE TABLE IF NOT EXISTS Provider (
+CREATE TABLE IF NOT EXISTS Vendor (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   person_type VARCHAR(32) NOT NULL,
   name VARCHAR(255) NOT NULL,
@@ -196,6 +296,8 @@ CREATE TABLE IF NOT EXISTS Provider_Product (
   provider_fk INT UNSIGNED NOT NULL,
   product_fk INT UNSIGNED NOT NULL,
   sell_price DECIMAL(10,2) NOT NULL,
+  QuantityPerUnit DECIMAL(10, 2) DEFAULT NULL,
+  SKU VARCHAR(128) DEFAULT NULL,
   
   CONSTRAINT providerproduct_provider_fk FOREIGN KEY (provider_fk) REFERENCES Provider(id),
   CONSTRAINT providerproduct_product_fk FOREIGN KEY (product_fk) REFERENCES Product(id)
