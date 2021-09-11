@@ -163,6 +163,7 @@ CREATE TABLE IF NOT EXISTS OfficeProduct (
   DiscountId INT UNSIGNED DEFAULT NULL,
   Stock DECIMAL(10,2) NOT NULL,
   SellPrice DECIMAL(10,2) NOT NULL,
+  PriceUpdated DATETIME DEFAULT NOW(),
   Utility DECIMAL(10,2) NOT NULL,
   CreatedBy VARCHAR(255) NOT NULL,
   CreatedDate DATETIME DEFAULT NOW(),
@@ -251,7 +252,7 @@ CREATE TABLE IF NOT EXISTS Sale (
   IVA DECIMAL(20, 2) NOT NULL,
   SubTotal DECIMAL(20, 2) NOT NULL,
   Total DECIMAL(20, 2) NOT NULL,
-  QuantityItems MEDIUMINT UNSIGNED UNSIGNED NOT NULL,
+  QuantityItems MEDIUMINT UNSIGNED NOT NULL,
   Status VARCHAR(64) COMMENT 'pending || closed',
   Type VARCHAR(16) NOT NULL COMMENT 'sale || order',
   CreatedBy VARCHAR(255) NOT NULL,
@@ -333,6 +334,10 @@ CREATE TABLE IF NOT EXISTS VendorProduct (
   SellPrice DECIMAL(10,2) NOT NULL,
   QuantityPerUnit DECIMAL(10, 2) DEFAULT NULL,
   SKU VARCHAR(128) DEFAULT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL,
   
   CONSTRAINT VendorProductVendorFk
   FOREIGN KEY (VendorId)
@@ -343,94 +348,164 @@ CREATE TABLE IF NOT EXISTS VendorProduct (
   REFERENCES Product(ProductId)
 );
 
-CREATE TABLE IF NOT EXISTS Provider_Product_History (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  provider_product_fk INT UNSIGNED NOT NULL,
-  sell_price DECIMAL(10,2) NOT NULL,
-  price_update DATETIME DEFAULT NOW(),
+CREATE TABLE IF NOT EXISTS VendorProductHistory (
+  VendorProductHistoryId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  VendorProductId INT UNSIGNED NOT NULL,
+  SellPrice DECIMAL(10,2) NOT NULL,
+  PriceUpdated DATETIME DEFAULT NOW(),
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL,
   
-  CONSTRAINT providerproducthistory_providerproduct_fk FOREIGN KEY (provider_product_fk) REFERENCES Provider_Product(id)
+  CONSTRAINT VendorProductHistoryVendorProductFk
+  FOREIGN KEY (VendorProductId)
+  REFERENCES VendorProduct(VendorProductId)
 );
 
-CREATE TABLE IF NOT EXISTS Provider_Contact (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  provider_fk INT UNSIGNED NOT NULL,
-  first_names VARCHAR(255) NOT NULL,
-  last_names VARCHAR(255) NOT NULL,
-  phone_number VARCHAR(32) DEFAULT NULL,
-  email VARCHAR(128) DEFAULT NULL,
-  position VARCHAR(64) DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS VendorContact (
+  VendorContactId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  VendorId INT UNSIGNED NOT NULL,
+  FirstName VARCHAR(128) NOT NULL,
+  MiddleName VARCHAR(128) DEFAULT NULL,
+  SurNames VARCHAR(255) DEFAULT NULL,
+  PhoneNumber VARCHAR(32) DEFAULT NULL,
+  Email VARCHAR(128) DEFAULT NULL UNIQUE,
+  Position VARCHAR(64) DEFAULT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL,
   
-  CONSTRAINT providercontact_provider_fk FOREIGN KEY (provider_fk) REFERENCES Provider(id)
-)COMMENT='Provider´s contacts';
-
-CREATE TABLE IF NOT EXISTS Provider_Bank (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  provider_fk INT UNSIGNED NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  account_number VARCHAR(128) NOT NULL,
-  clabe BIGINT UNSIGNED NOT NULL,
-  account_holder VARCHAR(128) NOT NULL,
-  
-  CONSTRAINT providerbank_provider_fk FOREIGN KEY (provider_fk) REFERENCES Provider(id)
-)COMMENT='Provider´s banks';
-
-CREATE TABLE IF NOT EXISTS Buy (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  user_fk INT UNSIGNED NOT NULL,
-  provider_fk INT UNSIGNED NOT NULL,
-  iva DECIMAL(20, 2) NOT NULL,
-  subtotal DECIMAL(20, 2) NOT NULL,
-  total DECIMAL(20, 2) NOT NULL,
-  products_qty MEDIUMINT UNSIGNED NOT NULL,
-  creation_date DATETIME DEFAULT NOW(),
-  
-  CONSTRAINT buy_user_fk FOREIGN KEY (user_fk) REFERENCES User(id),
-  CONSTRAINT buy_provider_fk FOREIGN KEY (provider_fk) REFERENCES Provider(id)
+  CONSTRAINT VendorContactVendorFk
+  FOREIGN KEY (VendorId)
+  REFERENCES Vendor(VendorId)
 );
 
-CREATE TABLE IF NOT EXISTS Buy_Detail (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  buy_fk INT UNSIGNED NOT NULL,
-  product_fk INT UNSIGNED NOT NULL,
-  iva DECIMAL(20, 2) NOT NULL,
-  subtotal DECIMAL(20, 2) NOT NULL,
-  total DECIMAL(20, 2) NOT NULL,
+CREATE TABLE IF NOT EXISTS VendorBank (
+  VendorBankId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  VendorId INT UNSIGNED NOT NULL,
+  Name VARCHAR(255) NOT NULL,
+  AccountNumber VARCHAR(128) NOT NULL,
+  Clabe BIGINT UNSIGNED NOT NULL,
+  AccountHolder VARCHAR(128) NOT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL,
   
-  CONSTRAINT buydetail_buy_fk FOREIGN KEY (buy_fk) REFERENCES Buy(id),
-  CONSTRAINT buydetail_product_fk FOREIGN KEY (product_fk) REFERENCES Product(id)
-)COMMENT='A row per bought product';
-
-CREATE TABLE IF NOT EXISTS Devolution (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  user_fk INT UNSIGNED NOT NULL,
-  total DECIMAL(20, 2) NOT NULL,
-  products_qty MEDIUMINT UNSIGNED NOT NULL,
-  reason VARCHAR(255) NOT NULL,
-  creation_date DATETIME DEFAULT NOW(),
-  
-  CONSTRAINT devolution_user FOREIGN KEY (user_fk) REFERENCES User(id)
+  CONSTRAINT VendorBankVendorFk
+  FOREIGN KEY (VendorId)
+  REFERENCES Vendor(VendorId)
 );
 
-CREATE TABLE IF NOT EXISTS Devolution_Detail (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  devolution_fk INT UNSIGNED NOT NULL,
-  product_fk INT UNSIGNED NOT NULL,
-  total DECIMAL(20, 2) NOT NULL,
+CREATE TABLE IF NOT EXISTS Order (
+  OrderId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  UserId INT UNSIGNED NOT NULL,
+  VendorId INT UNSIGNED NOT NULL,
+  IVA DECIMAL(20, 2) NOT NULL,
+  SubTotal DECIMAL(20, 2) NOT NULL,
+  TotaL DECIMAL(20, 2) NOT NULL,
+  QuantityItems MEDIUMINT UNSIGNED NOT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL,
   
-  CONSTRAINT devolutiondetail_devolution_fk FOREIGN KEY (devolution_fk) REFERENCES Devolution(id),
-  CONSTRAINT devolutiondetail_product_fk FOREIGN KEY (product_fk) REFERENCES Product(id)
-)COMMENT='A row per returned product';
+  CONSTRAINT OrderUserFk
+  FOREIGN KEY (UserId)
+  REFERENCES User(UserId),
 
-CREATE TABLE IF NOT EXISTS Product_Expense (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  user_fk INT UNSIGNED NOT NULL,
-  product_fk INT UNSIGNED NOT NULL,
-  reason VARCHAR(255),
-  decrease BOOLEAN DEFAULT FALSE,
-  consumable BOOLEAN DEFAULT FALSE COMMENT 'if the product expense it was for other products (TRUE) or it leaves for others reasons',
-  creation_date DATETIME DEFAULT NOW(),
+  CONSTRAINT OrderVendorFk
+  FOREIGN KEY (VendorId)
+  REFERENCES Vendor(VendorId)
+);
+
+CREATE TABLE IF NOT EXISTS OrderDetail (
+  OrderDetailId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  OrderId INT UNSIGNED NOT NULL,
+  ProductId INT UNSIGNED NOT NULL,
+  IVA DECIMAL(20, 2) NOT NULL,
+  SubTotal DECIMAL(20, 2) NOT NULL,
+  Total DECIMAL(20, 2) NOT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL,
   
-  CONSTRAINT productexpense_user_fk FOREIGN KEY (user_fk) REFERENCES User(id),
-  CONSTRAINT productexpense_product_fk FOREIGN KEY (product_fk) REFERENCES Product(id)
+  CONSTRAINT OrderDetailOrderFk
+  FOREIGN KEY (OrderId)
+  REFERENCES Order(OrderId),
+
+  CONSTRAINT OrderDetailProductFk
+  FOREIGN KEY (ProductId)
+  REFERENCES Product(ProductId)
+);
+
+CREATE TABLE IF NOT EXISTS Refund (
+  RefundId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  UserId INT UNSIGNED NOT NULL,
+  Total DECIMAL(20, 2) NOT NULL,
+  QuantityItems MEDIUMINT UNSIGNED NOT NULL,
+  Reason VARCHAR(255) NOT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL,
+  
+  CONSTRAINT RefundUserFk
+  FOREIGN KEY (UserId)
+  REFERENCES User(UserId)
+);
+
+CREATE TABLE IF NOT EXISTS RefundDetail (
+  RefundDetailId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  RefundId INT UNSIGNED NOT NULL,
+  ProductId INT UNSIGNED NOT NULL,
+  Total DECIMAL(20, 2) NOT NULL,
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL,
+  
+  CONSTRAINT RefundDetailRefundFk
+  FOREIGN KEY (RefundId)
+  REFERENCES Refund(RefundId),
+  
+  CONSTRAINT RefundDetailProductFk
+  FOREIGN KEY (ProductId)
+  REFERENCES Product(ProductId)
+);
+
+CREATE TABLE IF NOT EXISTS ExpenseType (
+  ExpenseTypeId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  Type VARCHAR(64) COMMENT 'DECREASE || CONSUMABLE',
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL,
+);
+
+CREATE TABLE IF NOT EXISTS ProductExpense (
+  ProductExpenseId INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  UserId INT UNSIGNED NOT NULL,
+  ProductId INT UNSIGNED NOT NULL,
+  ExpenseTypeId INT UNSIGNED NOT NULL,
+  Reason VARCHAR(255),
+  CreatedBy VARCHAR(255) NOT NULL,
+  CreatedDate DATETIME DEFAULT NOW(),
+  LastModifiedBy VARCHAR(255) NOT NULL,
+  LastModifiedDate DATETIME NOT NULL,
+  
+  CONSTRAINT ProductExpenseUserFk
+  FOREIGN KEY (UserId)
+  REFERENCES User(UserId),
+
+  CONSTRAINT ProductExpenseProductFk
+  FOREIGN KEY (ProductId)
+  REFERENCES Product(ProductId),
+
+  CONSTRAINT ProductExpenseExpenseType
+  FOREIGN KEY (ExpenseTypeId)
+  REFERENCES ExpenseType(ExpenseTypeId)
 );
